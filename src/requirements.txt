@@ -1,0 +1,13 @@
+asgiref==3.8.1
+Django==5.1.7
+sqlparse==0.5.3
+tzdata==2025.2
+
+# DB
+psycopg2-binary==2.9.5
+
+#REDIS
+django-redis==5.4.0
+#DOCs
+drf-spectacular==0.26.5
+django-filter

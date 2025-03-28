@@ -1,0 +1,61 @@
+
+
+services:
+  web:
+    build:
+      dockerfile: Dockerfile
+      context: ./src
+    container_name: $SITE-$ENV-web
+    networks:
+      - django-network
+    restart: always
+    ports:
+      - "$WEB_PORT:8000"
+    environment:
+      ENV: $ENV
+    image: "nginx:latest"
+    volumes:
+      - ./src/:/app
+
+  cron:
+    build:
+      dockerfile: Dockerfile
+      context: ./src
+    container_name: $SITE-$ENV-cron
+    command: /usr/local/startup.sh
+    networks:
+      - django-network
+    restart: always
+    environment:
+      ENV: $ENV
+    volumes:
+      - ./src/:/app
+      - ./bin/startup.sh:/usr/local/startup.sh:ro
+      - ./bin/tts.bash:/app/bin/tts.bash:ro
+      # - ./bin/processtasks.bash:/app/bin/processtasks.bash:ro
+
+  process_tasks:
+    build:
+      dockerfile: Dockerfile
+      context: ./src
+    container_name: $SITE-$ENV-process-tasks
+    command: python manage.py process_tasks --sleep 15
+    networks:
+      - django-network
+    restart: always
+    environment:
+      ENV: $ENV
+      POSTGRES_USER: project
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project
+      POSTGRES_HOST: db
+      SECRET_KEY: $SECRET_KEY
+      TZ: $TIMEZONE # Ajusta esto a tu zona horaria deseada
+    volumes:
+      - ./src/:/app
+    depends_on:
+      - db
+      
+networks:
+  django-network:
+    driver: bridge
